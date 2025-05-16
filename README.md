@@ -1,6 +1,6 @@
 # 📅 Universālais Plānotājs
 
-Šis ir vienkāršs, bet funkcionāls tīmekļa lietotnes prototips – *Universālais Plānotājs* – kas izstrādājs ir Kirils Žarinovs.
+Šis ir vienkāršs, bet funkcionāls tīmekļa lietotnes prototips – *Universālais Plānotājs* – kas izstrādājs ir Kirills Žarinovs.
 
 ## 🎯 Mērķis
 Palīdzēt skolēniem organizēt savus mācību pienākumus, termiņus un prioritātes, izmantojot digitālu risinājumu, kas aizstāj tradicionālās dienasgrāmatas.
@@ -20,4 +20,4 @@ Vienkārši atveriet `planotajs.html` jebkurā modernā tīmekļa pārlūkprogra
 Nav nepieciešama! Šī ir statiska HTML lapas lietotne, kas darbojas bez servera.
 
 ## 👨‍💻 Autors
-Izstrādājs: Kirils Žarinovs
+Izstrādājs: Kirills Žarinovs
