@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universālais Plānotājs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
+      padding: 2rem;
+      color: #2c3e50;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #2980b9;
+    }
+
+    form, .task, .filters, .summary {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    input, textarea, button, select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    button {
+      background: #27ae60;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #2ecc71;
+    }
+
+    .task {
+      border-left: 5px solid #3498db;
+      position: relative;
+    }
+
+    .task.complete {
+      background: #ecf9ec;
+      border-left-color: #2ecc71;
+      text-decoration: line-through;
+    }
+
+    .checkbox {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      transform: scale(1.5);
+    }
+
+    .task h3 { margin: 0; color: #2c3e50; }
+    .task .meta { color: #7f8c8d; font-size: 0.9rem; }
+    .priority-high { color: #c0392b; font-weight: bold; }
+    .priority-medium { color: #f39c12; font-weight: bold; }
+    .priority-low { color: #27ae60; font-weight: bold; }
+
+    .filters label, .summary div {
+      display: inline-block;
+      margin-right: 1rem;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+  <h1>📅 Universālais Plānotājs</h1>
+
+  <form id="taskForm">
+    <label>Uzdevuma nosaukums:<input type="text" id="taskTitle" required></label>
+    <label>Termiņš:<input type="date" id="taskDueDate" required></label>
+    <label>Priekšmets:<input type="text" id="taskSubject"></label>
+    <label>Prioritāte:
+      <select id="taskPriority">
+        <option value="low">Zema</option>
+        <option value="medium">Vidēja</option>
+        <option value="high">Augsta</option>
+      </select>
+    </label>
+    <label>Piezīmes:<textarea id="taskNotes" rows="3"></textarea></label>
+    <button type="submit">➕ Pievienot uzdevumu</button>
+  </form>
+
+  <div class="filters">
+    <label>📊 Filtrēt pēc prioritātes:
+      <select id="priorityFilter">
+        <option value="all">Visas</option>
+        <option value="high">Augsta</option>
+        <option value="medium">Vidēja</option>
+        <option value="low">Zema</option>
+      </select>
+    </label>
+    <button onclick="clearAllTasks()" style="background:#e74c3c;">🗑️ Dzēst visus uzdevumus</button>
+  </div>
+
+  <div class="summary">
+    <h2>📈 Statistika</h2>
+    <div id="summaryText"></div>
+  </div>
+
+  <h2>📋 Uzdevumu saraksts</h2>
+  <div id="taskList"></div>
+
+  <div class="footer">&copy; 2025 Universālais Plānotājs.</div>
+
+  <script>
+    const taskForm = document.getElementById('taskForm');
+    const taskList = document.getElementById('taskList');
+    const priorityFilter = document.getElementById('priorityFilter');
+    const summaryText = document.getElementById('summaryText');
+
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function updateSummary() {
+      const total = tasks.length;
+      const completed = tasks.filter(t => t.complete).length;
+      summaryText.textContent = `Kopā uzdevumu: ${total}, pabeigti: ${completed}, atlikušies: ${total - completed}`;
+    }
+
+    function renderTasks() {
+      const filter = priorityFilter.value;
+      taskList.innerHTML = '';
+      tasks
+        .filter(task => filter === 'all' || task.priority === filter)
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+        .forEach((task, index) => {
+          const taskDiv = document.createElement('div');
+          taskDiv.className = 'task' + (task.complete ? ' complete' : '');
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = task.complete;
+          checkbox.className = 'checkbox';
+          checkbox.addEventListener('change', () => {
+            task.complete = checkbox.checked;
+            saveTasks();
+            renderTasks();
+          });
+
+          const title = document.createElement('h3');
+          title.textContent = `${task.title} (${task.subject})`;
+
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          meta.innerHTML = `Termiņš: ${task.dueDate} | <span class="priority-${task.priority}">Prioritāte: ${task.priority.toUpperCase()}</span>`;
+
+          const notes = document.createElement('div');
+          notes.className = 'meta';
+          if (task.notes) notes.textContent = '📝 ' + task.notes;
+
+          taskDiv.appendChild(checkbox);
+          taskDiv.appendChild(title);
+          taskDiv.appendChild(meta);
+          if (task.notes) taskDiv.appendChild(notes);
+
+          taskList.appendChild(taskDiv);
+        });
+      updateSummary();
+    }
+
+    taskForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const title = document.getElementById('taskTitle').value.trim();
+      const dueDate = document.getElementById('taskDueDate').value;
+      const subject = document.getElementById('taskSubject').value.trim();
+      const notes = document.getElementById('taskNotes').value.trim();
+      const priority = document.getElementById('taskPriority').value;
+
+      if (title && dueDate) {
+        tasks.push({ title, dueDate, subject, notes, priority, complete: false });
+        saveTasks();
+        renderTasks();
+        taskForm.reset();
+      }
+    });
+
+    priorityFilter.addEventListener('change', renderTasks);
+
+    function clearAllTasks() {
+      if (confirm('Vai tiešām vēlies dzēst visus uzdevumus?')) {
+        tasks = [];
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    renderTasks();
+  </script>
+</body>
+</html>
